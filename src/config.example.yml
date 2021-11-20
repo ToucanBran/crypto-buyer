@@ -1,0 +1,37 @@
+---
+  TRADE_OPTIONS:
+    # In your pairing coin
+    # DO NOT DISABLE TSL!!!! YOUR BOT WILL NOT SELL
+    QUANTITY: 15
+    # BTCUSDT will be bought for example
+    PAIRING: USDT
+    TEST: True
+    # In %
+    SL: -3
+    TP: 2
+    ENABLE_TSL: True
+    TSL: -4
+    TTP: 2
+  queue:
+    name: queue-name
+    host: localhost
+    port: 30001
+    vhost: gateio
+    user: rabbit-mq-username
+    password: rabbit-mq-password
+  exchange:
+    api: change
+    secret: change
+  trade_options:
+    # In your pairing coin
+    # DO NOT DISABLE TSL!!!! YOUR BOT WILL NOT SELL
+    quantity: 15
+    # BTCUSDT will be bought for example
+    pairing: USDT
+    test: True
+    # In %
+    stop_loss: -3
+    take_profit: 2
+    enable_tsl: True
+    trailing_stop_loss: -4
+    trailing_take_profit: 2

@@ -1,0 +1,28 @@
+volumes:
+  logs:
+    path: /run/desktop/mnt/host/b/
+
+logging:
+  logLevel: DEBUG
+
+queue:
+  host: rabbitmq.default.svc.cluster.local
+  port: 5672
+  vhost: CHANGE
+  user: CHANGE
+  password: CHANGE
+
+exchange:
+  api: CHANGE
+  secret: CHANGE
+
+tradeOptions:
+  quantity: 15
+  pairing: USDT
+  test: False
+  stopLoss: -3
+  takeProfit: 2
+  enableTsl: True
+  trailingStopLoss: -4
+  trailingTakeProfit: 2
+

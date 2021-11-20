@@ -1,0 +1,117 @@
+image: python:3.10-buster
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+stages:
+  - install-packages
+  - lint
+  - test
+  - docker-build
+  - package
+  - deploy
+
+.python:
+  image: python:3.10-buster
+  cache:
+    policy: pull
+    untracked: true
+    key: $CI_COMMIT_REF_SLUG-pip
+    paths:
+      - ./cache/pip
+      - venv/
+  before_script:
+    - pip install virtualenv
+    - virtualenv venv
+    - source venv/bin/activate
+
+.helm:
+  image: 
+      name: alpine/helm:3.5.2
+      entrypoint: [""]
+
+install-pkgs:
+  extends: .python
+  stage: install-packages
+  cache:
+    policy: pull-push
+  script:
+    - 'pip install -r requirements.txt'
+
+lint-app:
+  extends: .python
+  stage: lint
+  script:
+    - 'find . -type f -not -path "./venv/*" -name "*.py" | xargs pylint -E'
+
+unit-test:
+  extends: .python
+  stage: test
+  script:
+    - 'pytest -k _unit'
+
+
+.deploy-docker-image:
+  image: docker:latest
+  services:
+    - docker:18.09.7-dind
+  before_script:
+    - 'echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin'
+  script:
+    - 'image_name=bgomez89/cryptobuyer$ENV:$CI_COMMIT_SHORT_SHA'
+    - 'docker build -t $image_name .'
+    - 'docker push $image_name'
+
+deploy-dev-docker:
+  extends: .deploy-docker-image
+  stage: docker-build
+  variables:
+    ENV: dev
+  rules:
+    - when: manual
+      allow_failure: true
+
+deploy-prod-docker:
+  extends: .deploy-docker-image
+  stage: docker-build
+  only:
+    - master
+
+helm-package:
+  extends: .helm
+  stage: package
+  before_script:
+    - 'mkdir packages'
+  script:
+    - 'helm package crypto-buyer --app-version $CI_COMMIT_SHORT_SHA -d packages'
+  artifacts:
+    paths:
+      - "packages/*.tgz"
+
+.deploy-helm-chart:
+  image: curlimages/curl:7.75.0
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - '[ -d "packages" ] && [ "$(ls -A packages)" ] || { echo "No package exist."; exit 1; }'
+    - 'for package in $(find packages -type f -name "*.tgz"); do path=$(pwd)/$package; echo $package; curl --request POST --user git-er-dun:$CI_JOB_TOKEN --form "chart=@${path}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/${CHANNEL}/charts"; done;'
+
+
+deploy-charts-dev:
+  extends: .deploy-helm-chart
+  stage: deploy
+  needs: ["helm-package"]
+  variables:
+    CHANNEL: dev
+  rules:
+    - when: manual
+      allow_failure: true
+
+deploy-charts-prod:
+  extends: .deploy-helm-chart
+  stage: deploy
+  needs: ["helm-package"]
+  variables:
+    CHANNEL: prod
+  only:
+    - master

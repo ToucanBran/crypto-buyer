@@ -1,0 +1,19 @@
+version: 1
+formatters:
+  default:
+    format: "%(asctime)s %(levelname)s: %(message)s <%(filename)s>"
+    class: services.buyer_logger.GMTFormatter
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: default
+
+loggers:
+  buyer:
+    level: DEBUG
+    handlers: [console]
+
+root:
+  level: INFO
+  handlers: []

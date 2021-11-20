@@ -1,0 +1,74 @@
+from gate_api import Order
+from services import get_logger, SpotApiWrapper
+from models import TradeOptions
+import datetime
+
+class Buyer:
+    def __init__(self, configs, trade_options: TradeOptions, spot_api_wrapper: SpotApiWrapper):
+        self.spot_api = spot_api_wrapper.get_spot_api()
+        self.logger = get_logger("buyer")
+        self.trade_options = trade_options
+        self.configs = configs
+
+    def get_last_price(self, base,quote):
+        """
+        Args:
+        'DOT', 'USDT'
+        """
+        tickers = self.spot_api.list_tickers(currency_pair=f'{base}_{quote}')
+        assert len(tickers) == 1
+        return tickers[0].last
+
+
+    def get_min_amount(self, base,quote):
+        """
+        Args:
+        'DOT', 'USDT'
+        """
+        try:
+            min_amount = self.spot_api.get_currency_pair(currency_pair=f'{base}_{quote}').min_quote_amount
+        except Exception as e:
+            self.logger.error(e)
+        else:
+            return min_amount
+
+
+    def place_order(self, base,quote, amount, side, last_price) -> Order:
+        """
+        Args:
+        'DOT', 'USDT', 50, 'buy', 400
+        """
+        try:
+            order = Order(amount=str(float(amount)/float(last_price)), price=last_price, side=side, currency_pair=f'{base}_{quote}')
+            order = self.spot_api.create_order(order)
+        except Exception as e:
+            self.logger.error(e)
+            raise
+
+        else:
+            return order
+    
+    def place_test_order(self, coin, price, trade_options: TradeOptions):
+        order_details = f"""
+        'symbol': {coin},
+        'price': {price},
+        'volume': {trade_options.quantity},
+        'time': {datetime.timestamp(datetime.now())},
+        'tp': {trade_options.trailing_take_profit},
+        'sl': {trade_options.stop_loss},
+        'id': 'test-order',
+        'text': 'test-order',
+        'create_time': {datetime.timestamp(datetime.now())},
+        'update_time': {datetime.timestamp(datetime.now())},
+        'currency_pair': f'{coin}_{trade_options.pairing}',
+        'status': 'filled',
+        'type': 'limit',
+        'account': 'spot',
+        'side': 'buy',
+        'iceberg': '0'
+        """
+        self.logger.info('PLACING TEST ORDER')
+        self.logger.debug(order_details)
+    
+    def store_order(self, order: Order):
+       return True

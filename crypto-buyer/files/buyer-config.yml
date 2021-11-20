@@ -1,0 +1,21 @@
+{{- with .Values -}}
+queue:
+  name: {{ .scrapers.binance.configs.queue.name }}
+  host: {{ .queue.host }}
+  port: {{ .queue.port }}
+  vhost: {{ .queue.vhost }}
+  user: {{ .queue.user }}
+  password: {{ .queue.password }}
+exchange:
+  api: {{ .exchange.api }}
+  secret: {{ .exchange.secret }}
+trade_options:
+  quantity: {{ .tradeOptions.quantity }}
+  pairing: {{ .tradeOptions.pairing }}
+  test: {{ .tradeOptions.test }}
+  stop_loss: {{ .tradeOptions.stopLoss }}
+  take_profit: {{ .tradeOptions.takeProfit }}
+  enable_tsl: {{ .tradeOptions.enableTsl }}
+  trailing_stop_loss: {{ .tradeOptions.trailingStopLoss }}
+  trailing_take_profit: {{ .tradeOptions.trailingTakeProfit }}
+{{- end }}

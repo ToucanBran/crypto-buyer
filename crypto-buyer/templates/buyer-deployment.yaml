@@ -1,0 +1,38 @@
+{{- with .Values }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: buyer-deployment
+  labels:
+    component: buyer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: buyer
+  template:
+    metadata:
+      labels:
+        component: buyer
+    spec:
+      containers:
+      - name: buyer
+        image: "{{ .repository }}:{{ .tag | default $.Chart.AppVersion}}"
+        imagePullPolicy: IfNotPresent
+          env:
+          - name: LOG_LEVEL
+            value: {{ .logging.logLevel }}
+          volumeMounts:
+          - name: buyer-secret
+            mountPath: /home/debian/app/config.yml
+            subPath: config.yml
+          - name: logs
+            mountPath: /home/debian/app/logs
+      volumes:
+      - name: buyer-secret
+        secret:
+          secretName: buyer-secret
+      - name: logs
+        persistentVolumeClaim:
+          claimName: buyer-logging-pv-claim
+{{- end }}
