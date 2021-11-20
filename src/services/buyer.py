@@ -5,7 +5,7 @@ import datetime
 
 class Buyer:
     def __init__(self, configs, trade_options: TradeOptions, spot_api_wrapper: SpotApiWrapper):
-        self.spot_api = spot_api_wrapper.get_spot_api()
+        self.spot_api = spot_api_wrapper.spot_api
         self.logger = get_logger("buyer")
         self.trade_options = trade_options
         self.configs = configs
