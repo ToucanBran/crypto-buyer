@@ -1,6 +1,6 @@
 {{- with .Values -}}
 queue:
-  name: {{ .scrapers.binance.configs.queue.name }}
+  name: {{ .queue.name }}
   host: {{ .queue.host }}
   port: {{ .queue.port }}
   vhost: {{ .queue.vhost }}

@@ -17,12 +17,12 @@ spec:
     spec:
       containers:
       - name: buyer
-        image: "{{ .repository }}:{{ .tag | default $.Chart.AppVersion}}"
+        image: {{ .repository }}:{{ .tag | default $.Chart.AppVersion}}
         imagePullPolicy: IfNotPresent
-          env:
+        env:
           - name: LOG_LEVEL
             value: {{ .logging.logLevel }}
-          volumeMounts:
+        volumeMounts:
           - name: buyer-secret
             mountPath: /home/debian/app/config.yml
             subPath: config.yml

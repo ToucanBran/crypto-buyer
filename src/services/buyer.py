@@ -1,6 +1,7 @@
-from gate_api import Order
+from gate_api import Order, Ticker
 from services import get_logger, SpotApiWrapper
 from models import TradeOptions
+from helpers import is_none_or_whitespace
 import datetime
 
 class Buyer:
@@ -10,13 +11,10 @@ class Buyer:
         self.trade_options = trade_options
         self.configs = configs
 
-    def get_last_price(self, base,quote):
-        """
-        Args:
-        'DOT', 'USDT'
-        """
-        tickers = self.spot_api.list_tickers(currency_pair=f'{base}_{quote}')
-        assert len(tickers) == 1
+    async def get_last_price(self, base, quote):
+        if is_none_or_whitespace(base) or is_none_or_whitespace(quote):
+            raise Exception("Missing base or quote from currency pair to get the last price")
+        tickers: list(Ticker) = await self.spot_api.list_tickers(currency_pair=f'{base}_{quote}')
         return tickers[0].last
 
 
@@ -33,14 +31,14 @@ class Buyer:
             return min_amount
 
 
-    def place_order(self, base,quote, amount, side, last_price) -> Order:
+    async def place_order(self, base,quote, amount, side, last_price) -> Order:
         """
         Args:
         'DOT', 'USDT', 50, 'buy', 400
         """
         try:
             order = Order(amount=str(float(amount)/float(last_price)), price=last_price, side=side, currency_pair=f'{base}_{quote}')
-            order = self.spot_api.create_order(order)
+            order = await self.spot_api.create_order(order)
         except Exception as e:
             self.logger.error(e)
             raise

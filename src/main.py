@@ -10,7 +10,7 @@ from services import setup_logger, get_logger, RabbitMqWrapper, queue, CoinServi
 from models.trade_options import TradeOptions
 from services import Buyer, SpotApiWrapper
     
-def handle_new_coin(ch, method, properties, coin):
+async def handle_new_coin(ch, method, properties, coin):
     logger = get_logger("buyer")
     order = order_coin(coin, CoinService())
     logger.info(f"{coin} will be ordered: {order}")
@@ -22,11 +22,11 @@ def handle_new_coin(ch, method, properties, coin):
     trade_options = TradeOptions()
     trade_options.import_options(configs["trade_options"])
     buyer = Buyer(configs, trade_options, spot_api)
-    price = buyer.get_last_price(coin, trade_options.pairing)
+    price = await buyer.get_last_price(coin, trade_options.pairing)
     if trade_options.test:
         buyer.place_test_order(coin, price, trade_options)
     else:
-        order = buyer.place_order(coin, trade_options.pairing, trade_options.quantity,'buy', price)
+        order = await buyer.place_order(coin, trade_options.pairing, trade_options.quantity,'buy', price)
         buyer.store_order(order)
         
     return True
