@@ -10,7 +10,3 @@ class TradeOptions:
     enable_tsl: bool = True
     trailing_stop_loss: int = 0
     trailing_take_profit: int = 0
-    
-    def import_options(self, **kwargs):
-        for key in kwargs:
-            setattr(self, key, kwargs[key])

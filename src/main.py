@@ -18,8 +18,7 @@ def handle_new_coin(ch, method, properties, coin):
 
     configs = load_config("config.yml")
     spot_api = SpotApiWrapper(configs["exchange"])
-    trade_options = TradeOptions()
-    trade_options.import_options(configs["trade_options"])
+    trade_options = TradeOptions(**configs["trade_options"])
     buyer = Buyer(configs, trade_options, spot_api)
     price = asyncio.get_event_loop().run_until_complete(buyer.get_last_price(coin, trade_options.pairing))
     if trade_options.test:
