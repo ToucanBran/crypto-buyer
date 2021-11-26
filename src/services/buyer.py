@@ -2,7 +2,7 @@ from gate_api import Order, Ticker
 from services import get_logger, SpotApiWrapper
 from models import TradeOptions
 from helpers import is_none_or_whitespace
-import datetime
+from datetime import datetime
 
 class Buyer:
     def __init__(self, configs, trade_options: TradeOptions, spot_api_wrapper: SpotApiWrapper):

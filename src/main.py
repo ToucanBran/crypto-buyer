@@ -6,9 +6,8 @@
 
 import sys, asyncio
 from load_config import load_config
-from services import setup_logger, get_logger, RabbitMqWrapper, queue, CoinService
+from services import setup_logger, get_logger, RabbitMqWrapper, queue, CoinService, Buyer, SpotApiWrapper
 from models.trade_options import TradeOptions
-from services import Buyer, SpotApiWrapper
     
 def handle_new_coin(ch, method, properties, coin):
     logger = get_logger("buyer")
