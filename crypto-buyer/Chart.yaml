@@ -1,5 +1,5 @@
 apiVersion: v2
-name: crypto-scraper
+name: crypto-buyer
 description: A Helm chart for Kubernetes
 
 type: application
