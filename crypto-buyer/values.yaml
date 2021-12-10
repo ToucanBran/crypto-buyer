@@ -1,3 +1,5 @@
+repository: bgomez89/cryptobuyer
+# tag: latest
 volumes:
   logs:
     path: /run/desktop/mnt/host/b/
@@ -6,6 +8,7 @@ logging:
   logLevel: DEBUG
 
 queue:
+  name: new-coins
   host: rabbitmq.default.svc.cluster.local
   port: 5672
   vhost: CHANGE

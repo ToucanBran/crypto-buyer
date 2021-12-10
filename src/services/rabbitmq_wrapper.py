@@ -1,6 +1,7 @@
 import pika
 from contextlib import contextmanager
 from pika.adapters.blocking_connection import BlockingChannel
+from services import get_logger
 
 @contextmanager
 def queue(configs):
@@ -17,11 +18,13 @@ class RabbitMqWrapper:
     channel: BlockingChannel = None
     def __init__(self, configs):
         self.configs = configs
+        self.logger = get_logger("buyer")
 
     def get_connection_params(self) -> BlockingChannel:
         if self.channel_connected():
             return self.channel
         credentials = pika.PlainCredentials(self.configs["user"], self.configs["password"])
+        self.logger.debug(f"Host: {self.configs['host']}")
         cp = pika.ConnectionParameters(port=self.configs["port"], host=self.configs["host"], virtual_host=self.configs["vhost"],
                                     credentials=credentials)
         

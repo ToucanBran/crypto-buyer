@@ -4,11 +4,10 @@
 # place order if not
 # store order
 
-import sys
+import sys, asyncio
 from load_config import load_config
-from services import setup_logger, get_logger, RabbitMqWrapper, queue, CoinService
+from services import setup_logger, get_logger, RabbitMqWrapper, queue, CoinService, Buyer, SpotApiWrapper
 from models.trade_options import TradeOptions
-from services import Buyer, SpotApiWrapper
     
 def handle_new_coin(ch, method, properties, coin):
     logger = get_logger("buyer")
@@ -19,14 +18,13 @@ def handle_new_coin(ch, method, properties, coin):
 
     configs = load_config("config.yml")
     spot_api = SpotApiWrapper(configs["exchange"])
-    trade_options = TradeOptions()
-    trade_options.import_options(configs["trade_options"])
+    trade_options = TradeOptions(**configs["trade_options"])
     buyer = Buyer(configs, trade_options, spot_api)
-    price = buyer.get_last_price(coin, trade_options.pairing)
+    price = asyncio.get_event_loop().run_until_complete(buyer.get_last_price(coin, trade_options.pairing))
     if trade_options.test:
         buyer.place_test_order(coin, price, trade_options)
     else:
-        order = buyer.place_order(coin, trade_options.pairing, trade_options.quantity,'buy', price)
+        order = asyncio.get_event_loop().run_until_complete(buyer.place_order(coin, trade_options.pairing, trade_options.quantity,'buy', price))
         buyer.store_order(order)
         
     return True
