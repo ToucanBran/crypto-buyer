@@ -1,3 +1,5 @@
+from multiprocessing.pool import AsyncResult
+from typing import Any
 from gate_api import Order, Ticker
 from gate_api.api.spot_api import SpotApi
 from services import get_logger, SpotApiWrapper
@@ -24,7 +26,7 @@ class Buyer:
         if is_none_or_whitespace(base) or is_none_or_whitespace(quote):
             raise Exception(
                 "Missing base or quote from currency pair to get the last price")
-        tickers: list(Ticker) = await self.spot_api.list_tickers(currency_pair=f'{base}_{quote}')
+        tickers: list(Ticker) = await self.execute_spot_api_function(fn=self.spot_api.list_tickers, currency_pair=f'{base}_{quote}')
         return tickers[0].last
 
     async def get_min_amount(self, base, quote):
@@ -32,7 +34,8 @@ class Buyer:
             raise Exception(
                 "Missing base or quote from currency pair to get the min amount")
         try:
-            return await self.spot_api.get_currency_pair(currency_pair=f'{base}_{quote}').min_quote_amount
+            currency_pair = await self.execute_spot_api_function(fn=self.spot_api.get_currency_pair, currency_pair=f'{base}_{quote}')
+            return currency_pair.min_quote_amount
         except Exception as e:
             self.logger.error(e)
 
@@ -46,7 +49,7 @@ class Buyer:
         try:
             order = Order(amount=str(float(amount)/float(last_price)),
                           price=last_price, side=side, currency_pair=f'{base}_{quote}')
-            return await self.spot_api.create_order(order)
+            return await self.execute_spot_api_function(fn=self.spot_api.create_order, order=order)
         except Exception as e:
             self.logger.error(e)
             raise
@@ -75,3 +78,7 @@ class Buyer:
 
     def store_order(self, order: Order):
         return True
+    
+    async def execute_spot_api_function(self, fn, **kwargs) -> Any | AsyncResult:
+        t = fn(**kwargs, async_req=True)
+        return t.get()
